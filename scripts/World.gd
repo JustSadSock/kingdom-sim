@@ -16,11 +16,11 @@ var _time_accum: float = 0.0
 var agents: Array[Agent] = []
 var settlements: Array[Settlement] = []
 var realms: Array[Realm] = []
-var agent_nodes := {}
-var settlement_nodes := {}
+var agent_nodes: Dictionary = {}
+var settlement_nodes: Dictionary = {}
 
 var _terrain_tileset: TileSet
-var _terrain_sources := {}
+var _terrain_sources: Dictionary = {}
 
 func _ready() -> void:
     randomize()
@@ -42,8 +42,8 @@ func _process(delta: float) -> void:
     _update_camera(delta)
 
 func _update_camera(delta: float) -> void:
-    var move := Vector2.ZERO
-    var speed := 200.0
+    var move: Vector2 = Vector2.ZERO
+    var speed: float = 200.0
     if Input.is_action_pressed("ui_right"):
         move.x += 1
     if Input.is_action_pressed("ui_left"):
@@ -70,7 +70,7 @@ func update_markets() -> void:
     for agent in agents:
         if not agent.alive:
             continue
-        var market := get_nearest_market(agent.pos)
+        var market: Market = get_nearest_market(agent.pos)
         match agent.daily_action:
             "woodcut":
                 market.register_sell_request("wood", 1.0)
@@ -95,19 +95,19 @@ func agents_do_jobs() -> void:
     for agent in agents:
         if not agent.alive:
             continue
-        var cell := grid.get_cell(agent.pos.x, agent.pos.y)
+        var cell: CellData = grid.get_cell(agent.pos.x, agent.pos.y)
         if cell == null:
             continue
         match agent.daily_action:
             "woodcut":
-                var amount := agent.skills.get("woodcut", 0.2) * (0.5 + cell.forest_density)
+                var amount: float = agent.skills.get("woodcut", 0.2) * (0.5 + cell.forest_density)
                 agent.add_inventory("wood", amount)
             "hunt":
-                var meat := agent.skills.get("hunt", 0.2) * (0.3 + cell.base_resources.get("game", 0.2))
+                var meat: float = agent.skills.get("hunt", 0.2) * (0.3 + cell.base_resources.get("game", 0.2))
                 agent.add_inventory("meat", meat)
                 agent.add_inventory("food", meat * 0.5)
             "farm":
-                var grain := agent.skills.get("farm", 0.2) * (0.5 + cell.fertility)
+                var grain: float = agent.skills.get("farm", 0.2) * (0.5 + cell.fertility)
                 agent.add_inventory("grain", grain)
                 agent.add_inventory("food", grain * 0.6)
             _:
@@ -118,7 +118,7 @@ func agents_consume_and_age() -> void:
     for agent in agents:
         if not agent.alive:
             continue
-        var eaten := agent.consume_food(1.0)
+        var eaten: float = agent.consume_food(1.0)
         if eaten < 1.0:
             if randf() < 0.2:
                 agent.alive = false
@@ -131,7 +131,7 @@ func agents_consume_and_age() -> void:
                 deaths.append(agent)
     for dead in deaths:
         if dead.settlement_id != -1:
-            var s := _get_settlement(dead.settlement_id)
+            var s: Settlement = _get_settlement(dead.settlement_id)
             if s:
                 s.population_ids.erase(dead.id)
         if agent_nodes.has(dead.id):
@@ -140,19 +140,19 @@ func agents_consume_and_age() -> void:
 
 func social_phase() -> void:
     for settlement in settlements:
-        var ids := settlement.population_ids.duplicate()
+        var ids: Array[int] = settlement.population_ids.duplicate()
         ids.shuffle()
         for i in range(0, ids.size(), 2):
             if i + 1 >= ids.size():
                 break
-            var a := _get_agent(ids[i])
-            var b := _get_agent(ids[i + 1])
+            var a: Agent = _get_agent(ids[i])
+            var b: Agent = _get_agent(ids[i + 1])
             if a == null or b == null:
                 continue
-            var key := str(b.id)
-            a.relationships[key] = a.relationships.get(key, 0.0) + 0.05
-            key = str(a.id)
-            b.relationships[key] = b.relationships.get(key, 0.0) + 0.05
+            var a_relationship_key: String = str(b.id)
+            a.relationships[a_relationship_key] = a.relationships.get(a_relationship_key, 0.0) + 0.05
+            var b_relationship_key: String = str(a.id)
+            b.relationships[b_relationship_key] = b.relationships.get(b_relationship_key, 0.0) + 0.05
         if settlement.population_ids.size() > 5 and randf() < 0.05:
             _spawn_child(settlement)
 
@@ -160,14 +160,14 @@ func _spawn_child(settlement: Settlement) -> void:
     # Very simple demographic growth: pick two parents and create a new child nearby.
     if settlement.population_ids.size() < 2:
         return
-    var parent_a := _get_agent(settlement.population_ids[0])
-    var parent_b := _get_agent(settlement.population_ids[1])
+    var parent_a: Agent = _get_agent(settlement.population_ids[0])
+    var parent_b: Agent = _get_agent(settlement.population_ids[1])
     if parent_a == null or parent_b == null:
         return
-    var pos := settlement.pos + Vector2i(randi_range(-1, 1), randi_range(-1, 1))
+    var pos: Vector2i = settlement.pos + Vector2i(randi_range(-1, 1), randi_range(-1, 1))
     pos.x = clamp(pos.x, 0, width - 1)
     pos.y = clamp(pos.y, 0, height - 1)
-    var child := _create_agent(pos)
+    var child: Agent = _create_agent(pos)
     child.age = 0
     child.skills["woodcut"] = (parent_a.skills.get("woodcut", 0.2) + parent_b.skills.get("woodcut", 0.2)) / 2.0 + randf_range(-0.05, 0.05)
     child.skills["farm"] = (parent_a.skills.get("farm", 0.2) + parent_b.skills.get("farm", 0.2)) / 2.0 + randf_range(-0.05, 0.05)
@@ -181,11 +181,11 @@ func politics_phase() -> void:
 func update_settlement_growth() -> void:
     for settlement in settlements:
         if settlement.population_ids.size() > 25 and randf() < 0.02:
-            var target := settlement.pos + Vector2i(randi_range(-6, 6), randi_range(-6, 6))
+            var target: Vector2i = settlement.pos + Vector2i(randi_range(-6, 6), randi_range(-6, 6))
             if grid.in_bounds(target.x, target.y) and grid.get_cell(target.x, target.y).settlement_id == -1:
-                var new_settlement := _create_settlement(target, "Hamlet %d" % settlements.size())
+                var new_settlement: Settlement = _create_settlement(target, "Hamlet %d" % settlements.size())
                 # Move a few agents over
-                var moved := 0
+                var moved: int = 0
                 for agent in agents:
                     if moved >= 3:
                         break
@@ -199,7 +199,7 @@ func update_settlement_growth() -> void:
 func update_realms() -> void:
     for settlement in settlements:
         if settlement.realm_id == -1 and settlement.population_ids.size() > 10:
-            var realm := Realm.new(realms.size())
+            var realm: Realm = Realm.new(realms.size())
             realm.name = "Realm %d" % realm.id
             realm.capital_settlement_id = settlement.id
             realm.add_settlement(settlement.id)
@@ -208,21 +208,21 @@ func update_realms() -> void:
             settlement.realm_id = realm.id
     # Simple dominance claim
     if realms.size() >= 2 and randf() < 0.02:
-        var attacker := realms[randi() % realms.size()]
-        var defender := realms[randi() % realms.size()]
+        var attacker: Realm = realms[randi() % realms.size()]
+        var defender: Realm = realms[randi() % realms.size()]
         if attacker == defender:
             return
         if defender.settlement_ids.size() > 0:
-            var captured := defender.settlement_ids.pop_back()
+            var captured: int = defender.settlement_ids.pop_back()
             attacker.add_settlement(captured)
-            var settlement := _get_settlement(captured)
+            var settlement: Settlement = _get_settlement(captured)
             if settlement:
                 settlement.realm_id = attacker.id
             # TODO: add war state tracking
 
 func handle_click(mouse_pos: Vector2) -> void:
-    var local_mouse := to_local(mouse_pos)
-    var clicked := false
+    var local_mouse: Vector2 = to_local(mouse_pos)
+    var clicked: bool = false
     for node in agents_root.get_children():
         if node is Node2D and node.has_method("is_mouse_over"):
             if node.is_mouse_over(local_mouse):
@@ -240,7 +240,7 @@ func handle_click(mouse_pos: Vector2) -> void:
         GameState.clear_selection()
 
 func get_population_count() -> int:
-    var total := 0
+    var total: int = 0
     for agent in agents:
         if agent.alive:
             total += 1
@@ -248,9 +248,9 @@ func get_population_count() -> int:
 
 func get_nearest_market(pos: Vector2i) -> Market:
     var best: Settlement = null
-    var best_dist := INF
+    var best_dist: float = INF
     for s in settlements:
-        var d := pos.distance_to(s.pos)
+        var d: float = pos.distance_to(s.pos)
         if d < best_dist:
             best = s
             best_dist = d
@@ -259,21 +259,21 @@ func get_nearest_market(pos: Vector2i) -> Market:
     return Market.new()
 
 func _generate_terrain() -> void:
-    var elevation_noise := FastNoiseLite.new()
+    var elevation_noise: FastNoiseLite = FastNoiseLite.new()
     elevation_noise.seed = randi()
     elevation_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
     elevation_noise.frequency = 0.015
 
-    var moisture_noise := FastNoiseLite.new()
+    var moisture_noise: FastNoiseLite = FastNoiseLite.new()
     moisture_noise.seed = randi()
     moisture_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
     moisture_noise.frequency = 0.02
 
     for x in width:
         for y in height:
-            var cell := grid.get_cell(x, y)
-            var elev := elevation_noise.get_noise_2d(x, y)
-            var moist := moisture_noise.get_noise_2d(x, y)
+            var cell: CellData = grid.get_cell(x, y)
+            var elev: float = elevation_noise.get_noise_2d(x, y)
+            var moist: float = moisture_noise.get_noise_2d(x, y)
             if elev > 0.55:
                 cell.terrain_type = "mountain"
             elif elev > 0.3:
@@ -298,13 +298,13 @@ func _refresh_tiles() -> void:
     terrain_tilemap.clear()
     for x in width:
         for y in height:
-            var cell := grid.get_cell(x, y)
-            var source_id := _terrain_sources.get(cell.terrain_type, _terrain_sources.get("field", 0))
+            var cell: CellData = grid.get_cell(x, y)
+            var source_id: int = _terrain_sources.get(cell.terrain_type, _terrain_sources.get("field", 0))
             terrain_tilemap.set_cell(0, Vector2i(x, y), source_id, Vector2i.ZERO)
 
 func _build_tileset() -> TileSet:
-    var tile_set := TileSet.new()
-    var color_map := {
+    var tile_set: TileSet = TileSet.new()
+    var color_map: Dictionary = {
         "field": Color(0.65, 0.8, 0.4),
         "forest": Color(0.1, 0.5, 0.1),
         "hill": Color(0.5, 0.45, 0.3),
@@ -315,34 +315,34 @@ func _build_tileset() -> TileSet:
         "road": Color(0.7, 0.6, 0.4),
     }
     for terrain_type in color_map.keys():
-        var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+        var img: Image = Image.create(16, 16, false, Image.FORMAT_RGBA8)
         img.fill(color_map[terrain_type])
-        var tex := ImageTexture.create_from_image(img)
-        var source := TileSetAtlasSource.new()
+        var tex: ImageTexture = ImageTexture.create_from_image(img)
+        var source: TileSetAtlasSource = TileSetAtlasSource.new()
         source.texture = tex
         source.create_tile(Vector2i.ZERO)
-        var id := tile_set.add_source(source)
+        var id: int = tile_set.add_source(source)
         _terrain_sources[terrain_type] = id
     return tile_set
 
 func _create_starting_settlement() -> void:
-    var center := Vector2i(width / 2, height / 2)
+    var center: Vector2i = Vector2i(width / 2, height / 2)
     for attempt in range(200):
-        var pos := Vector2i(randi() % width, randi() % height)
-        var cell := grid.get_cell(pos.x, pos.y)
+        var pos: Vector2i = Vector2i(randi() % width, randi() % height)
+        var cell: CellData = grid.get_cell(pos.x, pos.y)
         if cell and cell.is_passable() and cell.fertility > 0.3:
             center = pos
             break
     _create_settlement(center, "Home")
     for i in range(15):
-        var offset := Vector2i(randi_range(-3, 3), randi_range(-3, 3))
-        var pos := center + offset
+        var offset: Vector2i = Vector2i(randi_range(-3, 3), randi_range(-3, 3))
+        var pos: Vector2i = center + offset
         pos.x = clamp(pos.x, 0, width - 1)
         pos.y = clamp(pos.y, 0, height - 1)
         _create_agent(pos)
 
 func _create_settlement(pos: Vector2i, name: String) -> Settlement:
-    var settlement := Settlement.new(settlements.size())
+    var settlement: Settlement = Settlement.new(settlements.size())
     settlement.pos = pos
     settlement.name = name
     settlements.append(settlement)
@@ -351,7 +351,7 @@ func _create_settlement(pos: Vector2i, name: String) -> Settlement:
     return settlement
 
 func _create_agent(pos: Vector2i) -> Agent:
-    var agent := Agent.new(agents.size())
+    var agent: Agent = Agent.new(agents.size())
     agent.name = "Peasant %d" % agent.id
     agent.pos = pos
     agent.gender = "male" if randf() < 0.5 else "female"
@@ -366,7 +366,7 @@ func _create_agent(pos: Vector2i) -> Agent:
 func _ensure_agent_node(agent: Agent) -> void:
     if agent_nodes.has(agent.id):
         return
-    var scene := preload("res://scenes/Agent.tscn")
+    var scene: PackedScene = preload("res://scenes/Agent.tscn")
     var instance: Node2D = scene.instantiate()
     instance.agent = agent
     agents_root.add_child(instance)
@@ -375,7 +375,7 @@ func _ensure_agent_node(agent: Agent) -> void:
 func _ensure_settlement_node(settlement: Settlement) -> void:
     if settlement_nodes.has(settlement.id):
         return
-    var scene := preload("res://scenes/Settlement.tscn")
+    var scene: PackedScene = preload("res://scenes/Settlement.tscn")
     var instance: Node2D = scene.instantiate()
     instance.settlement = settlement
     settlements_root.add_child(instance)

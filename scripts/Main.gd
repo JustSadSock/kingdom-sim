@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var world: Node = $World
+@onready var world: World = $World
 @onready var hud: Control = $HUD
 
 func _ready() -> void:
