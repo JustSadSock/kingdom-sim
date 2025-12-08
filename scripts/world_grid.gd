@@ -1,7 +1,7 @@
 extends Resource
 class_name WorldGrid
 
-const DIRS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+const DIRS: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 
 var width: int = 0
 var height: int = 0
@@ -15,7 +15,7 @@ func init(new_width: int, new_height: int) -> void:
         cells[x] = []
         cells[x].resize(height)
         for y in height:
-            var cell := CellData.new()
+            var cell: CellData = CellData.new()
             cell.x = x
             cell.y = y
             cell.pass_cost = 1.0
@@ -32,8 +32,8 @@ func get_cell(x: int, y: int) -> CellData:
 func neighbors4(x: int, y: int) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
     for dir in DIRS:
-        var nx := x + dir.x
-        var ny := y + dir.y
+        var nx: int = x + dir.x
+        var ny: int = y + dir.y
         if in_bounds(nx, ny):
             result.append(Vector2i(nx, ny))
     return result
@@ -78,10 +78,10 @@ func find_path(start: Vector2i, goal: Vector2i) -> Array[Vector2i]:
             return _reconstruct_path(came_from, current)
 
         for neighbor in neighbors4(current.x, current.y):
-            var neighbor_cell := get_cell(neighbor.x, neighbor.y)
+            var neighbor_cell: CellData = get_cell(neighbor.x, neighbor.y)
             if neighbor_cell == null or not neighbor_cell.is_passable():
                 continue
-            var tentative_g := g_score[current] + neighbor_cell.pass_cost
+            var tentative_g: float = g_score[current] + neighbor_cell.pass_cost
             if tentative_g < g_score.get(neighbor, INF):
                 came_from[neighbor] = current
                 g_score[neighbor] = tentative_g

@@ -1,12 +1,13 @@
 extends Node
+class_name GameState
 
-var world: Node = null
+var world: World = null
 var selected_agent: Agent = null
 var selected_settlement: Settlement = null
 
 signal selection_changed
 
-func set_world(world_node: Node) -> void:
+func set_world(world_node: World) -> void:
     world = world_node
 
 func select_agent(agent: Agent) -> void:

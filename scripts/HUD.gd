@@ -31,12 +31,12 @@ func _on_selection_changed() -> void:
 
 func _update_selection_panel() -> void:
     if game_state.selected_agent:
-        var agent := game_state.selected_agent
+        var agent: Agent = game_state.selected_agent
         selection_label.text = "Agent: %s (age %s)" % [agent.name, agent.age]
         details_label.text = "Action: %s\nInventory: %s\nSkills: %s" % [agent.daily_action, agent.inventory, agent.skills]
         selection_panel.visible = true
     elif game_state.selected_settlement:
-        var settlement := game_state.selected_settlement
+        var settlement: Settlement = game_state.selected_settlement
         selection_label.text = "Settlement: %s" % settlement.name
         details_label.text = "Population: %s\nRealm: %s\nStock: %s" % [settlement.population_ids.size(), _get_realm_name(settlement.realm_id), settlement.market.stock]
         selection_panel.visible = true

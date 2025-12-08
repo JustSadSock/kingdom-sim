@@ -1,4 +1,5 @@
 extends Node2D
+class_name World
 
 @onready var terrain_tilemap: TileMap = $TerrainTileMap
 @onready var road_tilemap: TileMap = $RoadTileMap
@@ -353,7 +354,7 @@ func _create_agent(pos: Vector2i) -> Agent:
     var agent := Agent.new(agents.size())
     agent.name = "Peasant %d" % agent.id
     agent.pos = pos
-    agent.gender = randf() < 0.5 ? "male" : "female"
+    agent.gender = "male" if randf() < 0.5 else "female"
     agents.append(agent)
     for settlement in settlements:
         if settlement.pos.distance_to(pos) < 4:
