@@ -8,7 +8,7 @@ extends Control
 @onready var selection_label: Label = $VBoxContainer/SelectionPanel/SelectionLabel
 @onready var details_label: Label = $VBoxContainer/SelectionPanel/DetailsLabel
 
-@onready var game_state: GameState = GameState
+@onready var game_state: GameState = get_node("/root/GameState") as GameState
 
 func _ready() -> void:
     game_state.selection_changed.connect(_on_selection_changed)

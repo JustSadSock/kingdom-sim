@@ -18,6 +18,7 @@ var settlements: Array[Settlement] = []
 var realms: Array[Realm] = []
 var agent_nodes: Dictionary = {}
 var settlement_nodes: Dictionary = {}
+@onready var game_state: GameState = get_node("/root/GameState") as GameState
 
 var _terrain_tileset: TileSet
 var _terrain_sources: Dictionary = {}
@@ -226,18 +227,18 @@ func handle_click(mouse_pos: Vector2) -> void:
     for node in agents_root.get_children():
         if node is Node2D and node.has_method("is_mouse_over"):
             if node.is_mouse_over(local_mouse):
-                GameState.select_agent(node.agent)
+                game_state.select_agent(node.agent)
                 clicked = true
                 break
     if clicked:
         return
     for node in settlements_root.get_children():
         if node.has_method("is_mouse_over") and node.is_mouse_over(local_mouse):
-            GameState.select_settlement(node.settlement)
+            game_state.select_settlement(node.settlement)
             clicked = true
             break
     if not clicked:
-        GameState.clear_selection()
+        game_state.clear_selection()
 
 func get_population_count() -> int:
     var total: int = 0
