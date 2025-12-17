@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3 uid="uid://hud"]
+
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="1"]
+
+[node name="HUD" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 10.0
+script = ExtResource("1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+custom_minimum_size = Vector2(260, 0)
+
+[node name="DayLabel" type="Label" parent="Control/VBoxContainer"]
+text = "Day: 0"
+
+[node name="PopulationLabel" type="Label" parent="Control/VBoxContainer"]
+text = "Population: 0"
+
+[node name="SettlementsLabel" type="Label" parent="Control/VBoxContainer"]
+text = "Settlements: 0"
+
+[node name="RealmsLabel" type="Label" parent="Control/VBoxContainer"]
+text = "Realms: 0"
+
+[node name="SelectionPanel" type="VBoxContainer" parent="Control/VBoxContainer"]
+visible = false
+
+[node name="SelectionLabel" type="Label" parent="Control/VBoxContainer/SelectionPanel"]
+text = "Selection"
+
+[node name="DetailsLabel" type="Label" parent="Control/VBoxContainer/SelectionPanel"]
+text = "Details"
+autowrap_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/VBoxContainer"]
+custom_constants/margin_top = 8
+
+[node name="HelpLabel" type="Label" parent="Control/VBoxContainer/MarginContainer"]
+text = "Click agents or settlements to view details."
+autowrap_mode = 2
